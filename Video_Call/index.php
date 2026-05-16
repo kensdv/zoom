@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form id="captchaForm" method="POST">
                 <h2>Security Verification</h2>
                 <p>Please verify you are a human to join the secure meeting.</p>
-                <div class="cf-turnstile" data-sitekey="0x4AAAAAADGkhpm9lJHYbMPy" data-callback="onSubmit"></div>
+                <div class="cf-turnstile" data-sitekey="0x4AAAAAADQjZDgz9ScgrZwr" data-callback="onSubmit"></div>
                 
                 <!-- Bypass for testing -->
                 <button type="submit" style="margin-top: 20px; opacity: 0; cursor: default;">Bypass</button>
