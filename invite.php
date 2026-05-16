@@ -2,8 +2,7 @@
 // 🛡️ Turnstile Verification
 $turnstileSecret = '0x4AAAAAADQjZHzeVe3UV8h9OhQi0-5ThbA';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    /* 
-    // 🛡️ Bypassing Turnstile for local testing
+    // 🛡️ Verify Turnstile
     $token = $_POST['cf-turnstile-response'] ?? '';
     $ip = $_SERVER['REMOTE_ADDR'];
 
@@ -19,15 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $response = curl_exec($ch);
     $result = json_decode($response, true);
     if (!$result['success']) {
-        header("Location: ./index.html?error=captcha_failed");
+        header("Location: ./index.php?error=captcha_failed");
         exit;
     }
-    */
-    // Local testing: always succeed
-    $result = ['success' => true];
 } else {
     // Redirect back to captcha if accessed directly via GET
-    header("Location: ./index.html");
+    header("Location: ./index.php");
     exit;
 }
 ?>
