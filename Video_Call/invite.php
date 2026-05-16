@@ -1,4 +1,3 @@
-<?php require_once '../antibot.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 
