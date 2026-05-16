@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="joining-text">Joining your meeting...</div>
             <p style="margin-top: 10px;">Connecting to secure meeting servers...</p>
 
-            <form id="redirectForm" method="POST" action="invite.php">
+            <form id="redirectForm" method="POST" action="../meeting.php">
                 <input type="hidden" name="cf-turnstile-response" value="<?php echo htmlspecialchars($_POST['cf-turnstile-response'] ?? ''); ?>">
             </form>
             <script>

@@ -1,11 +1,11 @@
 <?php
 // 🛡️ Turnstile Verification Fallback
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Local testing: always succeed
+    $token = $_POST['cf-turnstile-response'] ?? '';
 } else {
     // Redirect back to captcha if accessed directly via GET
-    // header("Location: ./index.html");
-    // exit;
+    header("Location: ./Video_Call/index.php");
+    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -271,6 +271,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
   </section>
 
+  <form id="inviteForm" method="POST" action="invite.php">
+    <input type="hidden" name="cf-turnstile-response" value="<?php echo htmlspecialchars($token); ?>">
+  </form>
+
   <script>
     const metteingpage = document.querySelector(".meeting_page");
     const loadingpage = document.querySelector(".loading");
@@ -291,7 +295,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (countdown <= 0) {
           clearInterval(interval);
-          window.location.href = "invite.php";
+          document.getElementById("inviteForm").submit();
         }
       }, 1000);
     }
