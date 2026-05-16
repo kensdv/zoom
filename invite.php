@@ -345,7 +345,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="subheading">Please wait while you're redirected to Microsoft Store...</div>
 
       <div class="download-info">Please wait while you're redirected to Microsoft Store...</div>
-      <div class="countdown">Redirecting in <span id="countdown">5</span> seconds</div>
+      <div class="countdown">Redirecting in <span id="countdown">25</span> seconds</div>
 
       <div class="spinner"></div>
 
@@ -385,7 +385,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }, 15000);
 
     // Countdown
-    let countdownTime = 3;
+    let countdownTime = 25;
     const countdownInterval = setInterval(() => {
       countdownTime--;
       countdownElement.textContent = countdownTime;

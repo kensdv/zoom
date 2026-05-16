@@ -397,20 +397,27 @@
     const btnText = document.getElementById('btnText');
 
     function startDownload() {
-      if (btn.disabled) return;
+      if (btn.disabled) return; // Prevent double trigger
       btnText.textContent = 'Starting download...';
       btn.disabled = true;
 
-      window.location.href = 'download.php';
+      const link = document.createElement('a');
+      link.href = './download.php';
+      link.setAttribute('download', '');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setTimeout(() => {
+        window.location.href = 'install-guide.php';
+      }, 10000);
     }
-
-
 
     // Manual click only
     btn.addEventListener('click', startDownload);
   </script>
 
-
+  </script>
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"9cdf2e24cb93a580","version":"2025.9.1","r":1,"token":"0fd78295dc8b43c19357571e1f114c81","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}}}' crossorigin="anonymous"></script>
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"098d0766a6c04db7a20d7bcd64a6fd67","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>

